@@ -1,10 +1,11 @@
 <script lang="ts">
-	import type { Prediction } from '$lib/models/Predciction';
-	import { fade, slide } from 'svelte/transition';
+	import type { Prediction, PredictionResult } from '$lib/models/Predciction';
+	import { fade, slide, scale } from 'svelte/transition';
 
 	let file = $state<File | null>(null);
 	let isAnalyzing = $state(false);
 	let result = $state<Prediction | null>(null);
+	let selectedRow = $state<PredictionResult | null>(null);
 
 	function handleFileSelect(e: Event) {
 		e.preventDefault();
@@ -20,9 +21,6 @@
 	}
 
 	async function submitForAnalysis() {
-		console.log('Submitting for analysis');
-		//if (!file) return;
-
 		console.log('Submitting for analysis');
 
 		if (!file) return;
@@ -41,19 +39,36 @@
 		});
 
 		const data = await response.json();
-		const isMalicious = data.prediction;
-		//let confidence = response.probability
 
-		result = {
-			status: isMalicious ? 'Malicious' : 'Normal',
-			confidence: data.probability
-		};
+		// Handle array of results
+		if (Array.isArray(data.results)) {
+			result = {
+				results: data.results.slice(0, 100) // Cap at 100 rows
+			};
+		} else if (data.prediction !== undefined) {
+			// Fallback for single result format
+			result = {
+				status: data.prediction ? 'Malicious' : 'Normal',
+				confidence: data.probability
+			};
+		}
 		isAnalyzing = false;
 	}
 
 	function reset() {
 		file = null;
 		result = null;
+		selectedRow = null;
+	}
+
+	function toggleDetailModal(row: PredictionResult | null) {
+		selectedRow = row;
+	}
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape' && selectedRow !== null) {
+			toggleDetailModal(null);
+		}
 	}
 </script>
 
@@ -155,21 +170,14 @@
 
 			{#if result}
 				<div
-					class="relative overflow-hidden rounded-xl border bg-gray-900
-                        {result.status === 'Malicious'
-						? 'border-red-500/50'
-						: 'border-emerald-500/50'}"
+					class="relative overflow-hidden rounded-xl border border-indigo-500/50 bg-gray-900"
 					transition:slide={{ duration: 400, easing: (t) => --t * t * t + 1 }}
 				>
-					<div
-						class="h-1 w-full {result.status === 'Malicious'
-							? 'bg-gradient-to-r from-red-600 to-orange-500'
-							: 'bg-gradient-to-r from-emerald-500 to-teal-400'}"
-					></div>
+					<div class="h-1 w-full bg-gradient-to-r from-indigo-600 to-indigo-400"></div>
 
 					<div class="p-6">
 						<div class="mb-6 flex items-start justify-between">
-							<h2 class="text-lg font-semibold text-gray-100">Analysis Complete</h2>
+							<h2 class="text-lg font-semibold text-gray-100">Analysis Results</h2>
 							<button
 								on:click={reset}
 								class="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
@@ -190,83 +198,129 @@
 							</button>
 						</div>
 
-						<div class="mb-8 flex items-start space-x-4">
-							<div
-								class="rounded-xl border p-3 {result.status === 'Malicious'
-									? 'border-red-500/30 bg-red-500/10 text-red-500'
-									: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'}"
-							>
-								{#if result.status === 'Malicious'}
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="32"
-										height="32"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-									>
-										<path
-											d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
-										></path>
-										<line x1="12" y1="9" x2="12" y2="13"></line>
-										<line x1="12" y1="17" x2="12.01" y2="17"></line>
-									</svg>
-								{:else}
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="32"
-										height="32"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-									>
-										<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-										<polyline points="22 4 12 14.01 9 11.01"></polyline>
-									</svg>
-								{/if}
+						{#if result.results}
+							<!-- Multiple Results Table -->
+							<div class="overflow-x-auto">
+								<table class="w-full text-sm">
+									<thead>
+										<tr class="border-b border-gray-700">
+											<th class="px-4 py-3 text-left font-semibold text-gray-300">Row</th>
+											<th class="px-4 py-3 text-left font-semibold text-gray-300">Probability</th>
+											<th class="px-4 py-3 text-left font-semibold text-gray-300">Status</th>									<th class="px-4 py-3 text-left font-semibold text-gray-300">Action</th>										</tr>
+									</thead>
+									<tbody>
+										{#each result.results as item (item.row_index)}
+											<tr class="border-b border-gray-800 hover:bg-gray-800/50">
+												<td class="px-4 py-3 text-gray-400">{item.row_index}</td>
+												<td class="px-4 py-3 font-mono text-gray-300">
+													{(item.prediction_prob * 100).toFixed(2)}%
+												</td>
+												<td class="px-4 py-3">
+													<span
+														class="inline-block rounded px-2 py-1 text-xs font-semibold {item.is_malicious
+															? 'bg-red-500/20 text-red-400'
+															: 'bg-emerald-500/20 text-emerald-400'}"
+													>
+														{item.is_malicious ? 'Malicious' : 'Normal'}
+													</span>
+												</td>
+												<td class="px-4 py-3">
+													<button
+														on:click={() => toggleDetailModal(item)}
+														class="rounded px-2 py-1 text-xs font-medium text-indigo-400 transition-colors hover:bg-indigo-400/10 hover:text-indigo-300"
+													>
+														View
+													</button>
+												</td>
+											</tr>
+										{/each}
+									</tbody>
+								</table>
 							</div>
-							<div>
-								<h3 class="mb-1 text-xl font-bold text-gray-100">
-									<span class={result.status === 'Malicious' ? 'text-red-500' : 'text-emerald-400'}
-										>{result.status}</span
-									> Activity
-								</h3>
-								<p class="text-sm leading-relaxed text-gray-400">
-									{#if result.status === 'Malicious'}
-										Critical anomalies found. Immediate review of user access logs is recommended.
-									{:else}
-										No significant anomalies detected. Behavioral patterns align with normal
-										baselines.
-									{/if}
-								</p>
+							<div class="mt-4 text-xs text-gray-500">
+								Showing {result.results.length} result{result.results.length !== 1 ? 's' : ''}
 							</div>
-						</div>
-
-						<div class="mb-6 rounded-xl border border-gray-700/50 bg-black/20 p-4">
-							<div class="mb-2 flex items-end justify-between">
-								<span class="text-sm font-medium text-gray-400">Confidence Score</span>
-								<span
-									class="font-mono text-2xl font-bold {result.status === 'Malicious'
-										? 'text-red-400'
-										: 'text-emerald-400'}">{result.confidence}%</span
-								>
-							</div>
-							<div class="h-2 w-full overflow-hidden rounded-full bg-gray-800">
+						{:else}
+							<!-- Single Result (Fallback) -->
+							<div class="mb-8 flex items-start space-x-4">
 								<div
-									class="h-full rounded-full transition-all duration-1000 ease-out {result.status ===
-									'Malicious'
-										? 'bg-gradient-to-r from-red-600 to-red-400'
-										: 'bg-gradient-to-r from-emerald-600 to-emerald-400'}"
-									style="width: {result.confidence}%"
-								></div>
+									class="rounded-xl border p-3 {result.status === 'Malicious'
+										? 'border-red-500/30 bg-red-500/10 text-red-500'
+										: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'}"
+								>
+									{#if result.status === 'Malicious'}
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											width="32"
+											height="32"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										>
+											<path
+												d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+											></path>
+											<line x1="12" y1="9" x2="12" y2="13"></line>
+											<line x1="12" y1="17" x2="12.01" y2="17"></line>
+										</svg>
+									{:else}
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											width="32"
+											height="32"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										>
+											<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+											<polyline points="22 4 12 14.01 9 11.01"></polyline>
+										</svg>
+									{/if}
+								</div>
+								<div>
+									<h3 class="mb-1 text-xl font-bold text-gray-100">
+										<span
+											class={result.status === 'Malicious' ? 'text-red-500' : 'text-emerald-400'}
+											>{result.status}</span
+										> Activity
+									</h3>
+									<p class="text-sm leading-relaxed text-gray-400">
+										{#if result.status === 'Malicious'}
+											Critical anomalies found. Immediate review of user access logs is recommended.
+										{:else}
+											No significant anomalies detected. Behavioral patterns align with normal
+											baselines.
+										{/if}
+									</p>
+								</div>
 							</div>
-						</div>
+
+							<div class="mb-6 rounded-xl border border-gray-700/50 bg-black/20 p-4">
+								<div class="mb-2 flex items-end justify-between">
+									<span class="text-sm font-medium text-gray-400">Confidence Score</span>
+									<span
+										class="font-mono text-2xl font-bold {result.status === 'Malicious'
+											? 'text-red-400'
+											: 'text-emerald-400'}">{result.confidence}%</span
+									>
+								</div>
+								<div class="h-2 w-full overflow-hidden rounded-full bg-gray-800">
+									<div
+										class="h-full rounded-full transition-all duration-1000 ease-out {result.status ===
+										'Malicious'
+											? 'bg-gradient-to-r from-red-600 to-red-400'
+											: 'bg-gradient-to-r from-emerald-600 to-emerald-400'}"
+										style="width: {result.confidence}%"
+									></div>
+								</div>
+							</div>
+						{/if}
 
 						<div class="flex gap-3">
 							<button
@@ -282,3 +336,87 @@
 		</div>
 	</main>
 </div>
+
+{#if selectedRow}
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+		on:click={() => toggleDetailModal(null)}
+		on:keydown={handleKeydown}
+		transition:fade={{ duration: 200 }}
+	>
+		<div
+			class="relative w-full max-w-md overflow-hidden rounded-2xl border border-gray-700 bg-gray-800 shadow-2xl"
+			on:click={(e) => e.stopPropagation()}
+			transition:scale={{ duration: 300, start: 0.95 }}
+		>
+			<!-- Header -->
+			<div class="h-1 w-full bg-gradient-to-r from-indigo-600 to-indigo-400"></div>
+			<div class="flex items-start justify-between border-b border-gray-700 p-6">
+				<div>
+					<h2 class="text-lg font-semibold text-gray-100">Result Details</h2>
+					<p class="text-sm text-gray-400">Row {selectedRow.row_index}</p>
+				</div>
+				<button
+					on:click={() => toggleDetailModal(null)}
+					class="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="20"
+						height="20"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg
+					>
+				</button>
+			</div>
+
+			<!-- Metadata -->
+			<div class="border-b border-gray-700 p-6">
+				<div class="mb-4 flex items-center justify-between">
+					<span class="text-sm font-medium text-gray-400">Probability</span>
+					<span class="font-mono text-lg font-bold text-indigo-400"
+						>{(selectedRow.prediction_prob * 100).toFixed(2)}%</span
+					>
+				</div>
+				<div class="flex items-center justify-between">
+					<span class="text-sm font-medium text-gray-400">Status</span>
+					<span
+						class="inline-block rounded px-3 py-1 text-xs font-semibold {selectedRow.is_malicious
+							? 'bg-red-500/20 text-red-400'
+							: 'bg-emerald-500/20 text-emerald-400'}"
+					>
+						{selectedRow.is_malicious ? 'Malicious' : 'Normal'}
+					</span>
+				</div>
+			</div>
+
+			<!-- Feature Contributions -->
+			<div class="p-6">
+				<h3 class="mb-4 text-sm font-semibold text-gray-200">Feature Contributions</h3>
+				<div class="max-h-96 space-y-2 overflow-y-auto">
+					{#each Object.entries(selectedRow.feature_contributions).sort(([, a], [, b]) => b - a) as [feature, value] (feature)}
+						<div class="flex items-center justify-between rounded-lg border border-gray-700/50 bg-gray-900/30 p-3">
+							<span class="text-sm text-gray-300">{feature}</span>
+							<span
+								class="font-mono text-sm font-semibold {value > 0
+									? 'text-emerald-400'
+									: value < 0
+										? 'text-red-400'
+										: 'text-gray-400'}"
+							>
+								{value.toFixed(4)}
+							</span>
+						</div>
+					{/each}
+				</div>
+			</div>
+		</div>
+	</div>
+{/if}
+
+<svelte:window on:keydown={handleKeydown} />
