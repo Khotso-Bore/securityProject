@@ -35,8 +35,6 @@
 		const response = await fetch('http://127.0.0.1:8000/predict', {
 			method: 'POST',
 			body: formData
-			// Don't set Content-Type header — the browser sets it automatically
-			// with the correct multipart boundary
 		});
 
 		const data = await response.json();
@@ -44,10 +42,9 @@
 		// Handle array of results
 		if (Array.isArray(data.results)) {
 			result = {
-				results: data.results.slice(0, 100) // Cap at 100 rows
+				results: data.results
 			};
 		} else if (data.prediction !== undefined) {
-			// Fallback for single result format
 			result = {
 				status: data.prediction ? 'Malicious' : 'Normal',
 				confidence: data.probability
