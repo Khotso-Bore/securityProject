@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Prediction, PredictionResult } from '$lib/models/Predciction';
+	import { getFeatureDescription } from '$lib/utils/featureMetadata';
 	import { fade, slide, scale } from 'svelte/transition';
 
 	let file = $state<File | null>(null);
@@ -206,7 +207,9 @@
 										<tr class="border-b border-gray-700">
 											<th class="px-4 py-3 text-left font-semibold text-gray-300">Row</th>
 											<th class="px-4 py-3 text-left font-semibold text-gray-300">Probability</th>
-											<th class="px-4 py-3 text-left font-semibold text-gray-300">Status</th>									<th class="px-4 py-3 text-left font-semibold text-gray-300">Action</th>										</tr>
+											<th class="px-4 py-3 text-left font-semibold text-gray-300">Status</th>
+											<th class="px-4 py-3 text-left font-semibold text-gray-300">Action</th>
+										</tr>
 									</thead>
 									<tbody>
 										{#each result.results as item (item.row_index)}
@@ -370,7 +373,8 @@
 						stroke-width="2"
 						stroke-linecap="round"
 						stroke-linejoin="round"
-						><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg
+						><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"
+						></line></svg
 					>
 				</button>
 			</div>
@@ -398,19 +402,36 @@
 			<!-- Feature Contributions -->
 			<div class="p-6">
 				<h3 class="mb-4 text-sm font-semibold text-gray-200">Feature Contributions</h3>
+
+				<!-- Interpretation Summary -->
+				<div class="mb-4 rounded-lg border border-gray-700/50 bg-gray-900/50 p-3">
+					<p class="text-xs text-gray-400">
+						<span class="font-semibold text-gray-300">
+							{selectedRow.is_malicious ? 'Malicious' : 'Normal'} Behavior:
+						</span>
+						<span class="ml-1 font-semibold text-red-400">Red values</span>
+						<span class="text-gray-400">contribute to malicious behavior.</span>
+						<span class="ml-1 font-semibold text-emerald-400">Green values</span>
+						<span class="text-gray-400">indicate normal behavior.</span>
+					</p>
+				</div>
+
 				<div class="max-h-96 space-y-2 overflow-y-auto">
 					{#each Object.entries(selectedRow.feature_contributions).sort(([, a], [, b]) => b - a) as [feature, value] (feature)}
-						<div class="flex items-center justify-between rounded-lg border border-gray-700/50 bg-gray-900/30 p-3">
-							<span class="text-sm text-gray-300">{feature}</span>
-							<span
-								class="font-mono text-sm font-semibold {value > 0
-									? 'text-emerald-400'
-									: value < 0
+						<div class="space-y-1 rounded-lg border border-gray-700/50 bg-gray-900/30 p-3">
+							<div class="flex items-center justify-between">
+								<span class="text-sm font-medium text-gray-300">{feature}</span>
+								<span
+									class="font-mono text-sm font-semibold {value > 0
 										? 'text-red-400'
-										: 'text-gray-400'}"
-							>
-								{value.toFixed(4)}
-							</span>
+										: value < 0
+											? 'text-emerald-400'
+											: 'text-gray-400'}"
+								>
+									{value.toFixed(4)}
+								</span>
+							</div>
+							<p class="text-xs text-gray-500">{getFeatureDescription(feature)}</p>
 						</div>
 					{/each}
 				</div>
