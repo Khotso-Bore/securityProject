@@ -1,42 +1,77 @@
-# sv
+# Insider Threat Detection Frontend
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A Svelte-based frontend application for detecting and analyzing insider threats using machine learning predictions.
 
-## Creating a project
+## Project Description
 
-If you're seeing this, you've probably already done this step. Congrats!
+This frontend application provides an interactive interface for the Insider Threat Detection system (COS720 Project). It enables users to:
+
+- Upload and analyze datasets related to insider threat detection
+- Visualize prediction results and model outputs
+- Interact with predictive models to identify potential insider threats in organizational data
+
+The application is built with Svelte and SvelteKit, providing a modern, responsive user interface for security analysis and data visualization.
+
+## Prerequisites
+
+- Node.js (v18 or higher)
+- npm or yarn package manager
+
+## Getting Started
+
+### Installation
+
+First, install the project dependencies:
 
 ```sh
-# create a new project
-npx sv create my-app
+npm install
 ```
 
-To recreate this project with the same configuration:
+### Running the Development Server
 
-```sh
-# recreate this project
-npx sv@0.12.7 create --template minimal --types ts --add prettier eslint tailwindcss="plugins:typography" --install npm my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Start the development server:
 
 ```sh
 npm run dev
+```
 
-# or start the server and open the app in a new browser tab
+This will launch the application at `http://localhost:5173`. To automatically open it in your browser:
+
+```sh
 npm run dev -- --open
 ```
 
-## Building
+### Building for Production
 
-To create a production version of your app:
+To create an optimized production build:
 
 ```sh
 npm run build
 ```
 
-You can preview the production build with `npm run preview`.
+### Preview Production Build
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+To test the production build locally:
+
+```sh
+npm run preview
+```
+
+## Project Structure
+
+- `src/` - Source code directory
+  - `lib/` - Reusable components and utilities
+    - `models/` - Prediction model definitions
+  - `routes/` - Page routes and layouts
+- `static/` - Static assets
+
+## Technology Stack
+
+- **Framework**: Svelte / SvelteKit
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Linting**: ESLint
+
+## Notes
+
+For deployment, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
