@@ -40,14 +40,15 @@ The Insider Threat Detection System is a machine learning-based solution designe
 
 The backend uses Python with the following critical packages:
 
-| Package           | Version |
-| ----------------- | ------- |
-| fastapi           | 0.104.1 |
-| uvicorn[standard] | 0.24.0  |
-| torch             | 2.1.1   |
-| pandas            | 2.1.3   |
-| joblib            | 1.3.2   |
-| shap              | 0.43.0  |
+| Package          | Version |
+| ---------------- | ------- |
+| fastapi          | 0.136.1 |
+| joblib           | 1.5.1   |
+| pandas           | 3.0.3   |
+| shap             | 0.51.0  |
+| torch            | 2.7.1   |
+| uvicorn          | 0.47.0  |
+| python-multipart | 0.0.29  |
 
 ### Frontend Dependencies
 
