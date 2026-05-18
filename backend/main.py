@@ -75,7 +75,7 @@ async def predict(file: UploadFile = File(...)):
         results.append({
             "row_index": i,
             "prediction_prob": float(torch.sigmoid(prediction_logits[i]).item()),
-            "is_malicious": bool(torch.sigmoid(prediction_logits[i]).item() > 0.7),
+            "is_malicious": bool(torch.sigmoid(prediction_logits[i]).item() > 0.5),
             "feature_contributions": feature_importance
         })
 
