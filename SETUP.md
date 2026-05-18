@@ -1,204 +1,361 @@
-# Insider Threat Detection System - Setup & Running Guide
+# COS720 Project - Insider Threat Detection System
 
-This guide provides step-by-step instructions to set up and run both the backend API and frontend web application for the Insider Threat Detection system.
-
-## Table of Contents
-
-1. [Overview](#overview)
-2. [Prerequisites](#prerequisites)
-3. [Backend Setup](#backend-setup)
-4. [Frontend Setup](#frontend-setup)
-5. [Running the Services](#running-the-services)
-6. [Verification & Testing](#verification--testing)
-7. [Ports & Access](#ports--access)
-8. [Troubleshooting](#troubleshooting)
+## Comprehensive Setup and Documentation Guide
 
 ---
 
-## Overview
+## 1. SYSTEM OVERVIEW
 
-The Insider Threat Detection system consists of two services:
+### Project Description
 
-- **Backend**: FastAPI-based REST API that performs threat predictions and provides SHAP-based explainability
-- **Frontend**: Svelte/SvelteKit web application for uploading CSV datasets and viewing threat analysis results
+The Insider Threat Detection System is a machine learning-based solution designed to identify and classify potential insider threats within an organization. The system leverages a trained neural network model to analyze behavioral and access patterns, predicting the likelihood of malicious activity.
 
-Both services must run simultaneously for the full application to function.
+### System Components
+
+1. **Backend Service**: FastAPI-based REST API server
+2. **Frontend Interface**: Svelte-based single-page application
+3. **ML Model**: PyTorch neural network
+
+### Data Flow
+
+1. User inputs features through the frontend interface
+2. Features are sent to the backend API
+3. Backend processes and scales the features
+4. Model makes prediction
+5. Results returned to frontend for visualization
 
 ---
 
-## Prerequisites
+## 2. SOFTWARE REQUIREMENTS AND DEPENDENCIES
 
-Ensure you have the following installed on your system:
+### System Requirements
 
-- **Python 3.8 or higher** — [Download Python](https://www.python.org/downloads/)
-- **Node.js 16 or higher** — [Download Node.js](https://nodejs.org/)
-- **npm** — Usually installed with Node.js; verify with `npm --version`
-- **Git** (optional, for cloning the repository)
+- Operating System: Windows 10/11, macOS, or Linux
+- Python: Version 3.9 or later (recommended: 3.11.x)
+- Node.js: Version 18.0.0 or later (for frontend)
+- RAM: Minimum 4GB (recommended: 8GB)
+- Disk Space: 2GB for dependencies and models
 
-### Verify Installation
+### Backend Dependencies
+
+The backend uses Python with the following critical packages:
+
+| Package           | Version |
+| ----------------- | ------- |
+| fastapi           | 0.104.1 |
+| uvicorn[standard] | 0.24.0  |
+| torch             | 2.1.1   |
+| pandas            | 2.1.3   |
+| joblib            | 1.3.2   |
+| shap              | 0.43.0  |
+
+### Frontend Dependencies
+
+The frontend uses Node.js with the following packages:
+
+| Package       | Version |
+| ------------- | ------- |
+| svelte        | 5.51.0  |
+| @sveltejs/kit | 2.50.2  |
+| vite          | 7.3.1   |
+| tailwindcss   | 4.1.18  |
+| typescript    | 5.9.3   |
+
+# 3. Installation Instructions
+
+## Backend
+
+### 1. Navigate to the backend directory
 
 ```bash
-python --version
-node --version
-npm --version
+cd Project/backend
 ```
 
----
-
-## Backend Setup
-
-### Step 1: Navigate to Backend Directory
+### 2. Create and activate a virtual environment
 
 ```bash
-cd backend
-```
-
-### Step 2: Create a Python Virtual Environment (Recommended)
-
-```bash
-# Windows
+# Create
 python -m venv venv
+
+# Activate — Windows
 venv\Scripts\activate
 
-# macOS/Linux
-python3 -m venv venv
+# Activate — macOS/Linux
 source venv/bin/activate
 ```
 
-### Step 3: Install Dependencies
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-This will install:
-
-- `fastapi` — Web framework for the REST API
-- `uvicorn` — ASGI server to run the FastAPI app
-- `torch` — PyTorch deep learning framework for the neural network
-- `pandas` — Data manipulation and CSV handling
-- `joblib` — Serialized model and scaler loading
-- `shap` — Model explainability library
-
-### Step 4: Verify Model Files
-
-Ensure the following files exist in the `model/` directory (relative to the project root):
-
-```
-model/
-├── model_weights.pth      ✓ Pre-trained model weights
-├── scaler.joblib          ✓ Feature scaler for preprocessing
-└── insider_threat_clean_dataset.csv  (used for SHAP background)
-```
-
-If these files are missing, the backend will fail to start.
-
 ---
 
-## Frontend Setup
+## Frontend
 
-### Step 1: Navigate to Frontend Directory
-
-From the project root (or a new terminal):
+### 1. Navigate to the frontend directory
 
 ```bash
-cd frontend
+cd Project/frontend
 ```
 
-### Step 2: Install Node.js Dependencies
+### 2. Install dependencies
 
 ```bash
 npm install
 ```
 
-This will install all packages defined in `package.json`, including:
-
-- Svelte 5.51.0
-- SvelteKit 2.50.2
-- Vite 7.3.1
-- Tailwind CSS 4.1.18
-- TypeScript 5.9.3
-
-### Step 3: Verify Installation
-
-```bash
-npm run build
-```
-
-This will build the frontend to ensure all dependencies are correctly installed. The `build/` folder will be created.
+Key packages installed:
 
 ---
 
-## Running the Services
+# 4. Deployment and Execution Instructions
 
-You **must run both services simultaneously** in separate terminal windows/tabs.
+Both the backend and frontend must be running simultaneously. Use two separate terminal windows or tabs.
 
-### Terminal 1: Start the Backend
-
-From the `backend/` directory:
+## Terminal 1 — Backend
 
 ```bash
-# If using a virtual environment, activate it first (Windows)
-venv\Scripts\activate
+# Navigate and activate virtual environment
+cd Project/backend
 
-# Then start the API server
+# Windows
+venv\Scripts\activate
+# macOS/Linux
+source venv/bin/activate
+
+# Start the server
 python -m uvicorn main:app --reload
 ```
 
-**Expected output:**
-
-```
-INFO:     Uvicorn running on http://127.0.0.1:8000
-INFO:     Application startup complete
-```
-
-The `--reload` flag enables hot-reloading for development. Remove it for production.
-
-### Terminal 2: Start the Frontend
-
-From the `frontend/` directory:
-
-```bash
-npm run dev
-```
-
-**Expected output:**
-
-```
-VITE v7.3.1 ready in 100 ms
-
-➜  Local:   http://localhost:5173/
-```
-
-### Services are Ready!
-
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://127.0.0.1:8000
+The API will be available at `http://localhost:8000`.
 
 ---
 
-## Verification & Testing
-
-### 1. Check Backend Health
-
-Open a browser or use `curl`:
+## Terminal 2 — Frontend
 
 ```bash
-curl http://127.0.0.1:8000/ping
+cd Project/frontend
+npm run dev
 ```
 
-**Expected response:**
+The application will be available at `http://localhost:5173`.
 
-```json
-{ "message": "pong" }
+---
+
+## Verify the Setup
+
+Once both servers are running, open `http://localhost:5173` in your browser. Ensure the backend is reachable at `http://localhost:8000` before interacting with the app.
+
+---
+
+# 5. Source Code Documentation
+
+## Folder structure
+
+```
+Project/
+├── SETUP.md
+├── backend/
+│   ├── main.py
+│   ├── ThreatModels.py
+│   ├── requirements.txt
+│   ├── README.md
+│   └── insider_threat_clean_dataset_test.csv
+├── frontend/
+│   ├── package.json
+│   ├── svelte.config.js
+│   ├── vite.config.ts
+│   ├── src/
+│   │   ├── app.html
+│   │   ├── lib/
+│   │   │   ├── assets/
+│   │   │   │   └── favicon.svg
+│   │   │   ├── models/
+│   │   │   │   └── Predciction.ts
+│   │   │   └── utils/
+│   │   │       └── featureMetadata.ts
+│   │   └── routes/
+│   │       ├── +layout.svelte
+│   │       ├── +page.svelte
+│   │       └── layout.css
+│   └── static/
+│       └── robots.txt
+└── model/
+    ├── model.ipynb
+    ├── model.joblib
+    ├── model_weights.pth
+    └── scaler.joblib
 ```
 
-### 2. Access Frontend
+## Backend
 
-Open a browser and navigate to:
+### `main.py`
+
+The entry point for the FastAPI application. Responsible for:
+
+- Initialising the FastAPI app instance and configuring CORS middleware
+- Defining API route handlers (endpoints) for receiving prediction requests
+- Loading serialised model artefacts (`model.joblib`, `model_weights.pth`, `scaler.joblib`) at startup
+- Passing incoming feature data to `ThreatModels.py` for inference and returning the result as a JSON response
+
+**Key endpoints:**
+
+| Method | Path       | Description                                          |
+| ------ | ---------- | ---------------------------------------------------- |
+| `GET`  | `/ping`        | Health check — confirms the API is running           |
+| `POST` | `/predict` | Accepts feature data and returns a threat prediction |
+
+---
+
+### `ThreatModels.py`
+
+Contains the model inference logic, decoupled from the routing layer. Responsible for:
+
+- Defining the data schema (Pydantic models) for validating incoming request payloads
+- Preprocessing input features using the loaded scaler before inference
+- Running forward passes through the trained model to generate predictions
+- Optionally computing SHAP values for explainability alongside predictions
+
+---
+
+### `requirements.txt`
+
+Declares all Python dependencies required to run the backend. See [Section 3](#3-installation-instructions) for the full package list.
+
+---
+
+## Frontend
+
+### `src/routes/+layout.svelte`
+
+The root layout component that wraps every page in the application. Defines shared structural elements such as navigation, headers, and global styles imported from `layout.css`.
+
+---
+
+### `src/routes/+page.svelte`
+
+The application's landing page. Renders the primary user interface for submitting employee feature data and displaying the resulting threat prediction returned by the backend API.
+
+---
+
+### `src/routes/layout.css`
+
+Global CSS styles scoped to the layout. Defines base typography, spacing, colour tokens, and utility classes shared across all pages.
+
+---
+
+### `src/lib/models/Prediction.ts`
+
+TypeScript type definitions and interfaces for the prediction data model. Defines the shape of:
+
+- The request payload sent to `POST /predict`
+- The response object returned by the backend, including the predicted class and confidence score
+
+Ensures type safety across all API interactions in the frontend.
+
+---
+
+### `src/lib/utils/featureMetadata.ts`
+
+A utility module that holds metadata about the input features used by the model. Includes:
+
+- Feature names and their expected data types
+- Display labels used to render form fields in the UI
+- Valid value ranges or categorical options where applicable
+
+Acts as the single source of truth for feature definitions, keeping the UI and API payload in sync.
+
+---
+
+### `src/app.html`
+
+The root HTML shell for the SvelteKit application. Contains the `%sveltekit.head%` and `%sveltekit.body%` injection points used by the framework at build time.
+
+---
+
+### `package.json`
+
+Declares all Node.js dependencies and project scripts. Key scripts:
+
+| Script           | Command           | Description                         |
+| ---------------- | ----------------- | ----------------------------------- |
+| Dev server       | `npm run dev`     | Starts Vite dev server with HMR     |
+| Production build | `npm run build`   | Compiles and bundles the app        |
+| Preview          | `npm run preview` | Serves the production build locally |
+
+## Model
+
+### `model.ipynb`
+
+A Jupyter notebook documenting the full model development pipeline:
+
+1. Data loading and exploratory data analysis (EDA)
+2. Feature engineering and selection
+3. Data preprocessing and train/test splitting
+4. Model training and hyperparameter tuning
+5. Evaluation
+6. Serialisation of the trained model and scaler to disk
+
+---
+
+# 6. Description of Trained Model Files
+
+All trained model artefacts are located in the `model/` directory and are loaded by the backend at startup.
+
+---
+
+## `model.joblib`
+
+| Property  | Details                                                   |
+| --------- | --------------------------------------------------------- |
+| Format    | joblib serialised object                                  |
+| Framework | scikit-learn                                              |
+| Purpose   | Primary classification model for insider threat detection |
+
+Contains the serialised scikit-learn estimator (e.g. Random Forest, Gradient Boosting, or similar ensemble). This object encapsulates the trained parameters and is used to produce binary or probabilistic predictions from preprocessed input features. Loaded in `main.py` via `joblib.load()`.
+
+---
+
+## `model_weights.pth`
+
+| Property  | Details                                        |
+| --------- | ---------------------------------------------- |
+| Format    | PyTorch state dictionary (`.pth`)              |
+| Framework | PyTorch (`torch`)                              |
+| Purpose   | Weights for a trained neural network component |
+
+Contains the saved state dictionary of a PyTorch neural network, serialised using `torch.save()`. Loaded at runtime via `torch.load()` into the corresponding model architecture defined in `ThreatModels.py`. Used independently or in conjunction with `model.joblib` depending on the inference pipeline.
+
+---
+
+## `scaler.joblib`
+
+| Property  | Details                                 |
+| --------- | --------------------------------------- |
+| Format    | joblib serialised object                |
+| Framework | scikit-learn                            |
+| Purpose   | Feature normalisation / standardisation |
+
+Contains a fitted scikit-learn scaler (e.g. `StandardScaler` or `MinMaxScaler`) that transforms raw input features into the same numerical range seen during training. **Must be applied to all input data before inference.** Loaded in `main.py` via `joblib.load()` and called in `ThreatModels.py` prior to every prediction.
+
+> ⚠️ The scaler must not be retrained on new data without also retraining the model. Both artefacts are coupled — they were fitted on the same training set.
+
+---
+
+## Artefact Dependency Summary
 
 ```
-http://localhost:5173
+Incoming request
+      │
+      ▼
+ scaler.joblib       ← normalises raw input features
+      │
+      ▼
+ model.joblib        ← scikit-learn estimator (primary prediction)
+ model_weights.pth   ← PyTorch weights (neural network component)
+      │
+      ▼
+ Prediction output (class + confidence)
 ```
-
-You should see the Insider Threat Detection upload interface.
