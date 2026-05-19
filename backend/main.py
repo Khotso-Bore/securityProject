@@ -72,10 +72,11 @@ async def predict(file: UploadFile = File(...)):
         # Mapping feature names to their SHAP values for each row
         feature_importance = dict(zip(top_features, shap_values[i].values.flatten().tolist()))
         
+        prob = float(torch.sigmoid(prediction_logits[i]).item())
         results.append({
             "row_index": i,
-            "prediction_prob": float(torch.sigmoid(prediction_logits[i]).item()),
-            "is_malicious": bool(torch.sigmoid(prediction_logits[i]).item() > 0.5),
+            "prediction_prob": prob,
+            "is_malicious": bool(prob > 0.5),
             "feature_contributions": feature_importance
         })
 
