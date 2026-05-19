@@ -114,6 +114,7 @@ Key packages installed:
 # 4. Deployment and Execution Instructions
 
 Both the backend and frontend must be running simultaneously. Use two separate terminal windows or tabs.
+Ensure the `model` folder is present in order to load the model artefacts into the backend.
 
 ## Terminal 1 — Backend
 
@@ -147,7 +148,14 @@ The application will be available at `http://localhost:5173`.
 
 ## Verify the Setup
 
-Once both servers are running, open `http://localhost:5173` in your browser. Ensure the backend is reachable at `http://localhost:8000` before interacting with the app.
+Once both servers are running, open `http://localhost:5173` in your browser.
+
+ping the backend server to check if it is running
+
+```bash
+curl http://localhost:8000/ping
+```
+The response should be `{"message":"pong"}`
 
 ---
 
